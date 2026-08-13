@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "product": "bunan-ai-radar",
+  "version": "V0.2.4",
+  "severity": "important",
+  "title": "内置更新中心上线",
+  "summary": "这是最后一次需要引导安装的版本。之后新版本可直接在Web控制台内一键更新。",
+  "published_at": "2026-08-13T13:42:00+08:00",
+  "min_supported_version": "V0.2.4",
+  "notes": [
+    "新增Web内置“软件更新”页面与版本红点提醒",
+    "每6小时自动检查更新；该过程不调用DeepSeek，不消耗AI Token",
+    "发现新版本时可使用macOS通知中心提醒",
+    "更新前自动备份当前程序，绝不覆盖config.local.json和飞书业务数据",
+    "更新补丁执行前进行SHA256校验；新版本启动失败自动回滚旧版本"
+  ],
+  "patch_url": "",
+  "patch_sha256": ""
+}
