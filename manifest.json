@@ -1,30 +1,30 @@
 {
   "schema_version": 2,
   "product": "bunan-ai-radar",
-  "version": "V0.2.6.2",
+  "version": "V0.2.6.3",
   "severity": "critical",
-  "title": "界面交互紧急修复",
-  "summary": "修复V0.2.6.1中OCR脚本的MutationObserver自触发循环，解决页面能显示但所有按钮无法点击的问题，并清理更新成功后残留的进度状态。",
-  "published_at": "2026-08-13T17:05:00+08:00",
-  "min_supported_version": "V0.2.6.1",
+  "title": "Mac本地OCR引擎修复",
+  "summary": "修复Apple Vision JXA桥接异常：不再使用$({})和JavaScript数组直桥Objective-C，改用原生Foundation NSDictionary/NSMutableArray，并直接用图片URL创建VNImageRequestHandler。",
+  "published_at": "2026-08-13T17:25:00+08:00",
+  "min_supported_version": "V0.2.6.2",
   "notes": [
-    "移除OCR脚本对整个页面的全局MutationObserver，避免自触发循环占满Safari事件循环",
-    "恢复导航、按钮、输入框、软件更新等所有页面交互",
-    "更新成功后自动隐藏残留进度条并清理可能的更新锁定class",
-    "OCR界面改为只初始化一次，不再持续扫描整个DOM",
-    "保留PNG/JPG/JPEG、拖拽、选择图片、⌘V截图以及Mac本地Apple Vision OCR",
-    "原图仍只在Mac本地临时处理，不上传给DeepSeek"
+    "修复上传图片时报 __NSDictionaryM frameworkClass / unrecognized selector 的OCR失败",
+    "Vision options改用原生NSDictionary，不再使用容易触发桥接异常的$({})",
+    "识别语言与请求列表改用NSMutableArray，避免不同macOS版本的JS数组桥接差异",
+    "改用VNImageRequestHandler URL初始化路径，减少ImageIO与CGImage桥接环节",
+    "保留中文zh-Hans、英文en-US、Accurate识别和语言纠错",
+    "原图仍只在Mac本地临时处理，OCR完成立即删除；不会上传给DeepSeek"
   ],
   "files": [
     {
       "path": "server.py",
-      "repo_path": "releases/V0.2.6.2/server.py",
-      "sha256": "1c6c2272e32dd0134ed47d05412a6b0ed99e3614151ee3408ddd419f0f0cd6e5"
+      "repo_path": "releases/V0.2.6.3/server.py",
+      "sha256": "56f6d82320e7a5c84fc344d208f36475802bf6994ea4731d4031055d039edc00"
     },
     {
-      "path": "static/ocr.js",
-      "repo_path": "releases/V0.2.6.2/static/ocr.js",
-      "sha256": "6697b32b2c34eefbb889b80c077a9edebc57be2f2f1375800adeeb0242d22668"
+      "path": "update_assets/ocr_vision.jxa",
+      "repo_path": "releases/V0.2.6.3/update_assets/ocr_vision.jxa",
+      "sha256": "d90dd695629ee0a4cc5df17bbe7e053bc4760ac8d72b6d8d05143aaa3059aa3b"
     }
   ]
 }
