@@ -1,0 +1,43 @@
+ObjC.import('Foundation');
+ObjC.import('Vision');
+ObjC.import('ImageIO');
+
+function run(argv) {
+  try {
+    if (!argv || argv.length < 1) return JSON.stringify({ok:false,error:'缺少图片路径'});
+    var path = argv[0];
+    var url = $.NSURL.fileURLWithPath(path);
+    var source = $.CGImageSourceCreateWithURL(url, null);
+    if (!source) return JSON.stringify({ok:false,error:'无法读取图片'});
+    var image = $.CGImageSourceCreateImageAtIndex(source, 0, null);
+    if (!image) return JSON.stringify({ok:false,error:'无法解码图片'});
+
+    var request = $.VNRecognizeTextRequest.alloc.init;
+    request.recognitionLevel = $.VNRequestTextRecognitionLevelAccurate;
+    request.usesLanguageCorrection = true;
+    request.recognitionLanguages = ['zh-Hans', 'en-US'];
+
+    var handler = $.VNImageRequestHandler.alloc.initWithCGImageOptions(image, $({}));
+    var error = Ref();
+    var ok = handler.performRequestsError([request], error);
+    if (!ok) {
+      var msg = error[0] ? ObjC.unwrap(error[0].localizedDescription) : 'Vision识别失败';
+      return JSON.stringify({ok:false,error:String(msg)});
+    }
+
+    var lines = [];
+    var results = request.results;
+    var count = results ? Number(results.count) : 0;
+    for (var i = 0; i < count; i++) {
+      var obs = results.objectAtIndex(i);
+      var candidates = obs.topCandidates(1);
+      if (candidates && Number(candidates.count) > 0) {
+        var text = ObjC.unwrap(candidates.objectAtIndex(0).string);
+        if (text) lines.push(String(text));
+      }
+    }
+    return JSON.stringify({ok:true,text:lines.join('\n'),lines:lines.length});
+  } catch (e) {
+    return JSON.stringify({ok:false,error:String(e)});
+  }
+}
