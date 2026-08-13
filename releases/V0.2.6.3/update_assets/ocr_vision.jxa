@@ -1,0 +1,63 @@
+ObjC.import('Foundation');
+ObjC.import('Vision');
+
+function run(argv) {
+  try {
+    if (!argv || argv.length < 1) {
+      return JSON.stringify({ok:false,error:'缺少图片路径'});
+    }
+
+    var path = String(argv[0]);
+    var url = $.NSURL.fileURLWithPath($(path));
+    if (!url) {
+      return JSON.stringify({ok:false,error:'无法创建图片URL'});
+    }
+
+    var request = $.VNRecognizeTextRequest.alloc.init;
+    request.recognitionLevel = $.VNRequestTextRecognitionLevelAccurate;
+    request.usesLanguageCorrection = true;
+
+    var languages = $.NSMutableArray.alloc.init;
+    languages.addObject($('zh-Hans'));
+    languages.addObject($('en-US'));
+    request.recognitionLanguages = languages;
+
+    var options = $.NSDictionary.dictionary;
+    var handler = $.VNImageRequestHandler.alloc.initWithURLOptions(url, options);
+    if (!handler) {
+      return JSON.stringify({ok:false,error:'无法创建Vision图片处理器'});
+    }
+
+    var requests = $.NSMutableArray.alloc.init;
+    requests.addObject(request);
+
+    var error = Ref();
+    var ok = handler.performRequestsError(requests, error);
+    if (!ok) {
+      var msg = error[0] ? ObjC.unwrap(error[0].localizedDescription) : 'Vision识别失败';
+      return JSON.stringify({ok:false,error:String(msg)});
+    }
+
+    var lines = [];
+    var results = request.results;
+    var count = results ? Number(results.count) : 0;
+    for (var i = 0; i < count; i++) {
+      var obs = results.objectAtIndex(i);
+      var candidates = obs.topCandidates(1);
+      if (candidates && Number(candidates.count) > 0) {
+        var candidate = candidates.objectAtIndex(0);
+        var text = ObjC.unwrap(candidate.string);
+        if (text) lines.push(String(text));
+      }
+    }
+
+    return JSON.stringify({
+      ok:true,
+      text:lines.join('\n'),
+      lines:lines.length,
+      engine:'Apple Vision JXA v2'
+    });
+  } catch (e) {
+    return JSON.stringify({ok:false,error:String(e)});
+  }
+}
