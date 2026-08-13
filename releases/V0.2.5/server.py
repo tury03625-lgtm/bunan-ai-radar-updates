@@ -51,6 +51,55 @@ def _load_core():
     spec.loader.exec_module(mod)
     return mod
 
+
+def _prepare_v025_static():
+    """Decode all updater-verified UI assets without touching the live UI."""
+    import base64,zlib
+    asset_dir=APP_DIR/"update_assets"
+    mapping={
+        "v025_index.b64":"index.html",
+        "v025_app.b64":"app.js",
+        "v025_styles.b64":"styles.css",
+    }
+    prepared={}
+    for asset,name in mapping.items():
+        src=asset_dir/asset
+        if not src.exists():
+            raise RuntimeError(f"V0.2.5界面资源缺失：{asset}")
+        prepared[name]=zlib.decompress(base64.b64decode(src.read_text(encoding="ascii").strip()))
+    return prepared
+
+
+def _install_prepared_static(prepared):
+    """Atomically install UI files; restore the old UI if any write fails."""
+    static=APP_DIR/"static"
+    static.mkdir(parents=True,exist_ok=True)
+    backups={}
+    temps=[]
+    try:
+        # Write every new file first. Nothing live changes until all writes succeed.
+        for name,data in prepared.items():
+            dst=static/name
+            tmp=dst.with_name(dst.name+".v025-new")
+            tmp.write_bytes(data)
+            temps.append(tmp)
+            backups[name]=dst.read_bytes() if dst.exists() else None
+        # Atomic rename on the same filesystem.
+        for name in prepared:
+            dst=static/name
+            dst.with_name(dst.name+".v025-new").replace(dst)
+    except Exception:
+        for tmp in temps:
+            try: tmp.unlink(missing_ok=True)
+            except Exception: pass
+        for name,old in backups.items():
+            dst=static/name
+            try:
+                if old is None: dst.unlink(missing_ok=True)
+                else: dst.write_bytes(old)
+            except Exception: pass
+        raise
+
 core=_load_core()
 core.APP_VERSION=TARGET_VERSION
 
@@ -203,5 +252,22 @@ def _post_v025(self):
 core.Handler.do_POST=_post_v025
 
 
+def main_v025():
+    """Bind first, then install UI, then serve. A bind failure leaves the old UI untouched."""
+    core.APP_DIR.mkdir(parents=True,exist_ok=True)
+    prepared=_prepare_v025_static()
+    server=core.RadarHTTPServer((core.HOST,core.PORT),core.Handler)
+    try:
+        _install_prepared_static(prepared)
+        core.log(f"{TARGET_VERSION} web server ONLINE at http://{core.HOST}:{core.PORT}")
+        core.threading.Thread(target=core.background_schema_check,daemon=True,name="schema-check").start()
+        core.threading.Thread(target=core.background_update_loop,daemon=True,name="update-check").start()
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
+
+
 if __name__=="__main__":
-    core.main()
+    main_v025()
