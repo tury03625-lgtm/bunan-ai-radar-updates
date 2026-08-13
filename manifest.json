@@ -1,31 +1,40 @@
 {
   "schema_version": 2,
   "product": "bunan-ai-radar",
-  "version": "V0.2.6",
-  "severity": "normal",
-  "title": "图片 / 截图投喂上线",
-  "summary": "支持拖入图片、⌘V粘贴截图和选择图片；先用Mac本地Apple Vision提取文字，再由你决定是否交给DeepSeek分析。",
-  "published_at": "2026-08-13T16:18:00+08:00",
+  "version": "V0.2.6.1",
+  "severity": "important",
+  "title": "图片 / 截图投喂修复版",
+  "summary": "修复V0.2.6健康检查路由错误，改为更直接的完整文件更新；图片仍只在Mac本地通过Apple Vision OCR处理。",
+  "published_at": "2026-08-13T16:45:00+08:00",
   "min_supported_version": "V0.2.5",
   "notes": [
-    "投喂情报页新增图片拖拽区，支持 PNG / JPG / JPEG，单张最大10MB、一次最多4张",
-    "支持在投喂输入框和首页快速投喂框中直接 ⌘V 粘贴截图",
-    "OCR使用Apple Vision在Mac本机完成；原图只写入临时文件，识别完成立即删除",
-    "原图不会发送给DeepSeek；只有你点击AI分析后，OCR提取出的文字才进入现有DeepSeek流水线",
-    "截图OCR文字会与手工补充文字合并，继续执行原有MRI判断、园区Hard Gate和飞书回写",
-    "纯照片若没有可识别文字会明确提示，不会为了少数场景额外接入付费视觉模型",
-    "系统状态页增加Mac本地OCR可用状态；项目进度增加V0.2.6图片/截图投喂"
+    "修复V0.2.6新路由错误导致健康检查失败并自动回滚的问题",
+    "取消V0.2.6二次资源包启动器，更新链路改为直接文件替换，减少故障点",
+    "投喂情报支持PNG / JPG / JPEG拖拽、选择图片和⌘V粘贴截图",
+    "OCR只使用Mac本机Apple Vision；原图识别完成后立即删除，不上传给DeepSeek",
+    "只有你主动点击AI分析后，OCR文字才进入DeepSeek → MRI → Hard Gate → 飞书流程",
+    "更新失败仍会自动回滚到V0.2.5，飞书数据和API密钥不受影响"
   ],
   "files": [
     {
       "path": "server.py",
-      "repo_path": "releases/V0.2.6/server_loader.py",
-      "sha256": "974e7b57ae261845141eb4638dc16e021f45dfee6859eb0f1c30d63e4c5d000f"
+      "repo_path": "releases/V0.2.6.1/server.py",
+      "sha256": "daa9c4143b3fa16049e9c6a4740afbf808c198cac1a6d3150c69f8c5e30cb8b5"
     },
     {
-      "path": "update_assets/v026_bundle.b64",
-      "repo_path": "releases/V0.2.6/v026_bundle.b64",
-      "sha256": "51405c5c662c7aec7948f4c9501f13ab5a053f15bd30cf56bd150790fe2fc596"
+      "path": "static/ocr.js",
+      "repo_path": "releases/V0.2.6.1/static/ocr.js",
+      "sha256": "567c54e35e9b9558d91a1ddbac6e95301243c21a078113e33729215886837146"
+    },
+    {
+      "path": "static/ocr.css",
+      "repo_path": "releases/V0.2.6/static/ocr.css",
+      "sha256": "c585dfa7ba8100a10fc341a1c98616397e477f660951cff6488ad3a09c33d194"
+    },
+    {
+      "path": "update_assets/ocr_vision.jxa",
+      "repo_path": "releases/V0.2.6/update_assets/ocr_vision.jxa",
+      "sha256": "cd3b5d708262c851caef1bdd87de5e6665e46e68e62227f188947e1072be138a"
     }
   ]
 }
